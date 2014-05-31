@@ -68,9 +68,12 @@ function MOD.Initialize()
 	end
 	
 	MijHUD.Options.Radar = {
-		ShowNpcs = true,
-		SnowPlayers = true,
-		MaxRange = 3000,
+		VisShowNpcs = true,
+		VisShowPlys = true,
+		HudShowNpcs = true,
+		HudShowPlys = true,
+		HudMaxRange = 3000,
+		VisMaxRange = 3000,
 		NpcIdents = {
 			npc_alyx = "F",
 			npc_barney = "F",
@@ -116,6 +119,6 @@ function MOD.Initialize()
 		MaxCharge = 7290,
 		CritLevel = 0.05,
 		ChargeRate = 17.6,
-		DrainRate = 5.7,
+		DrainRate = 4.2,
 	}
 end
