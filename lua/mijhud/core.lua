@@ -10,6 +10,15 @@ function MijHUD.GetUniqueID()
 	return util.CRC(tostring(SysTime()))
 end
 
+function MijHUD.OneTimeHook(name, func)
+	local uniqid = MijHUD.GetUniqueID()
+	hook.Add(name, uniqid, function(...)
+		local ra,rb,rc = func(...)
+		hook.Remove(name, uniqid)
+		return ra,rb,rc
+	end)
+end
+
 local options = {}
 MOD.List_Options = options
 
@@ -20,25 +29,34 @@ MijHUD.Options = setmetatable({}, {
 	__newindex = function(_, key, val)
 		options[key] = val
 	end;
-	__call = function(_, key, val)
+	__call = function(_, query, val)
 		local curtbl = options
-		local keys = string.Split(key, ".")
-		local lastkey = keys[#keys]
-		for ikey = 1, #keys-1 do
-			local tkey = keys[ikey]
-			local newtbl = curtbl[tkey]
-			if not newtbl then
-				curtbl[tkey] = {}
-				curtbl = curtbl[tkey]
-			else
+		local keyiter = query:gmatch("[%w_]+")
+		if val ~= nil then
+			local lastk = nil
+			for key in keyiter do
+				if lastk then
+					local newt = curtbl[lastk]
+					if newt then
+						curtbl = newt
+					else
+						curtbl[lastk] = {}
+						curtbl = curtbl[lastk]
+					end
+				end
+				lastk = key
+			end
+			local rval = curtbl[lastk]
+			curtbl[lastk] = val
+			return rval
+		else
+			for key in keyiter do
+				local newtbl = curtbl[key]
+				if not newtbl then return nil end
 				curtbl = newtbl
 			end
+			return curtbl
 		end
-		local value = curtbl[lastkey]
-		if val ~= nil then
-			curtbl[lastkey] = val
-		end
-		return value
 	end;
 })
 
@@ -102,6 +120,10 @@ function cp_meta:AddAnimHandler(anim)
 	return uniq_id
 end
 
+function cp_meta:IsValid()
+	return true
+end
+
 local __weak = { __mode = "v" }
 local function weaktbl()
 	return setmetatable({}, __weak)
@@ -127,7 +149,6 @@ function MijHUD.NewComponent(idx)
 	end
 	return tab
 end
-
 local ab_meta = {}
 ab_meta.__index = ab_meta
 MOD.Meta_AnimBlink = ab_meta
@@ -322,6 +343,24 @@ function MijHUD.MapRange(val, a1, a2, b1, b2, flr)
 	return tmp
 end
 
+function MijHUD.GetItemName(cls, sec)
+	local names = MijHUD.Options("Items.CustomNames")
+	local iname = names and names[cls] or false
+	if iname then
+		return iname
+	elseif sec then
+		if sec[1] == "#" then
+			sec = language.GetPhrase(sec)
+		end
+		return sec
+	end
+	local lang = language.GetPhrase(cls)
+	if lang == cls then
+		lang = "$"..cls
+	end
+	return lang
+end
+
 local function patch_camera()
 	local gmod_camera = weapons.GetStored("gmod_camera")
 	if gmod_camera.MijHUD_Patch then return end
@@ -331,15 +370,7 @@ local function patch_camera()
 		return old_hud_should_draw(self, item)
 	end
 	gmod_camera.MijHUD_Patch = true
+	print("[!] Patching gmod_camera...")
 end
 
-if MijHUD_Loaded then
-	patch_camera()
-else
-	local hid = MijHUD.GetUniqueID()
-	hook.Add("InitPostEntity", hid, function()
-		patch_camera()
-		print("[!] Patching gmod_camera...")
-		hook.Remove("InitPostEntity", hid)
-	end)
-end
+MOD.ToggleHUD = patch_camera

@@ -11,6 +11,7 @@ function MOD.Initialize()
 	MijHUD.ColorScheme("Sec", {
 		Back = Color(0, 190, 90),
 		ColA = Color(0, 255, 155),
+		ColB = Color(80, 130, 80),
 	})
 	MijHUD.ColorScheme("Warn", {
 		ColA = Color(255, 230, 50),
@@ -28,6 +29,11 @@ function MOD.Initialize()
 		U = Color(190, 50, 220),
 	})
 	
+	MijHUD.Options.Basic = {
+		LowHealth = 20,
+		LowPrClip = 0.2,
+	}
+	
 	MijHUD.Options.Items = {
 		ClipSizes = {
 			weapon_pistol = 18,
@@ -38,10 +44,10 @@ function MOD.Initialize()
 			weapon_crossbow = 1,
 			weapon_nomad = 50,
 			fnp90 = 50,
-		}
+		};
 	}
 	
-	do -- Get CW and FA:S clip sizes
+	do -- Get CW and FA:S clip sizes --------
 		local wp_patt = { "^cstm_", "^fas2_" }
 		local function dump_clipsizes()
 			local _, weps = debug.getupvalue(weapons.GetStored, 1)
@@ -59,21 +65,19 @@ function MOD.Initialize()
 		if MijHUD_Loaded then
 			dump_clipsizes()
 		else
-			local hid = MijHUD.GetUniqueID()
-			hook.Add("InitPostEntity", hid, function()
-				dump_clipsizes()
-				hook.Remove("InitPostEntity", hid)
-			end)
+			MijHUD.OneTimeHook("InitPostEntity", dump_clipsizes)
 		end
-	end
+	end -------------------------------------
 	
 	MijHUD.Options.Radar = {
+		VisShowGates = false,
 		VisShowNpcs = true,
 		VisShowPlys = true,
+		HudShowGates = false,
 		HudShowNpcs = true,
 		HudShowPlys = true,
-		HudMaxRange = 3000,
-		VisMaxRange = 3000,
+		HudMaxRange = 10000,
+		VisMaxRange = 10000,
 		NpcIdents = {
 			npc_alyx = "F",
 			npc_barney = "F",
@@ -85,7 +89,7 @@ function MOD.Initialize()
 			npc_magnusson = "F",
 			npc_eli = "F",
 			npc_vortigaunt = "F",
-		
+			
 			npc_antlion = "D",
 			npc_antlionguard = "D",
 			npc_antlion_worker = "D",
@@ -118,7 +122,12 @@ function MOD.Initialize()
 	MijHUD.Options.Battery = {
 		MaxCharge = 7290,
 		CritLevel = 0.05,
-		ChargeRate = 17.6,
-		DrainRate = 4.2,
+		ChargeRate = 0.0, --17.6,
+		DrainRate = 0.0, --4.2,
+	}
+	
+	MijHUD.Options.Show = {
+		EntClass = true,
+		HudRadar = false,
 	}
 end

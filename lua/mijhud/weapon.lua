@@ -8,39 +8,21 @@ local MOD = {
 }
 MijHUD.LoadModule(MOD)
 
-function MOD.GetItemName(cls, sec)
-	local names = MijHUD.Options("Items.CustomNames")
-	local iname = names and names[cls] or false
-	if iname then
-		return iname
-	elseif sec then
-		if sec[1] == "#" then
-			sec = language.GetPhrase(sec)
-		end
-		return sec
-	end
-	local lang = language.GetPhrase(cls)
-	if lang == cls then
-		lang = "$"..cls
-	end
-	return lang
-end
-
 function MOD.PickupInfo.Weap(itm)
 	local txt_a = "WEAPON PICKED UP"
-	local txt_b = MOD.GetItemName(itm.N, itm.P)
+	local txt_b = MijHUD.GetItemName(itm.N, itm.P)
 	return txt_a, txt_b:upper()
 end
 
 function MOD.PickupInfo.Ammo(itm)
 	local txt_a = Format("AMMO PICKED UP *%d", itm.S)
-	local txt_b = MOD.GetItemName(itm.N.."_ammo")
+	local txt_b = MijHUD.GetItemName(itm.N.."_ammo")
 	return txt_a, txt_b:upper()
 end
 
 function MOD.PickupInfo.Misc(itm)
 	local txt_a = "MISC ITEM PICKED UP"
-	local txt_b = MOD.GetItemName(itm.N)
+	local txt_b = MijHUD.GetItemName(itm.N)
 	return txt_a, txt_b:upper()
 end
 
@@ -185,10 +167,8 @@ function MOD.Initialize()
 		if not IsValid(wpn) then
 			return "<INVALID WPN>"
 		end
-		local class = wpn:GetClass()
-		local pname = wpn.PrintName
-		local lang = MOD.GetItemName(class, pname)
-		return lang:upper()
+		local class, pname = wpn:GetClass(), wpn.PrintName
+		return MijHUD.GetItemName(class, pname):upper()
 	end
 	function weapsel:GetWeapAmmo(c1, a1, a2)
 		local clip = "???"
@@ -286,11 +266,11 @@ end
 function MOD.PickupWeap(weap)
 	if not MijHUD.IsShown then return end
 	MOD.PickupNotify:WeapNotify(weap)
-	--[[
+	--[[--------
 	if MOD.WeapSelDisp.Visible then
 		MOD.WeapSelDisp:StartSelect()
 	end
-	--]]
+	----------]]
 	return false
 end
 

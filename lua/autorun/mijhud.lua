@@ -8,7 +8,7 @@ end
 
 if CLIENT then
 	MijHUD = {
-		Version = "v1.7",
+		Version = "v1.792",
 		Modules = {},
 		IsShown = false,
 	}

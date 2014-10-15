@@ -21,6 +21,13 @@ local function DistanceToTarg(targ)
 	return ppos:Distance(targ:GetPos())
 end
 
+local function FmtClass(cname)
+	if cname == "class C_BaseEntity" then
+		return "FUNC-BUTTON" -- Very ugly hack
+	end
+	return cname:upper():gsub("_", "-")
+end
+
 function MOD.Initialize()
 	MijHUD.LoadTextures("HUD", {
 		Radar = "mijhud/radar.png",
@@ -31,7 +38,7 @@ function MOD.Initialize()
 		Size = 18,
 	})
 	
-	timer.Create("MijHUD.Targets", 0.1, 0, MOD.UpdateTargets)
+	timer.Create("MijHUD.Targets", 0.2, 0, MOD.UpdateTargets)
 	
 	local hradar = MijHUD.NewComponent()
 	MOD.HudRadarDisp = hradar
@@ -53,9 +60,9 @@ function MOD.Initialize()
 		scr.DrawTexRect(x, y, w, h, tex, col_b)
 		render.ClearStencil()
 		render.SetStencilEnable(true)
-		render.SetStencilReferenceValue(10)
-		render.SetStencilWriteMask(255)
 		render.SetStencilTestMask(255)
+		render.SetStencilWriteMask(255)
+		render.SetStencilReferenceValue(10)
 		render.SetStencilPassOperation(STENCIL_REPLACE)
 		render.SetStencilFailOperation(STENCIL_KEEP)
 		render.SetStencilZFailOperation(STENCIL_KEEP)
@@ -101,34 +108,45 @@ function MOD.Initialize()
 		offx, offy = x+(1+offx)*w/2, y+(1+offy)*h/2
 		scr.DrawRect(offx-3, offy-3, 6, 6, col_a)
 	end
+	function hradar:OnInterval()
+		self.Visible = MijHUD.Options("Show.HudRadar")
+	end
 	local utl = MijHUD.Basic.UtilsDispLf
 	local pos_y = utl.Y + utl.H - 32
 	hradar:SetViewport(utl.X, pos_y, 246, 246)
 	
-	local vec10z = Vector(0, 0, 10)
+	--local vec10z = Vector(0, 0, 10)
 	local ptri = { 0, 0; -12, -16; 12, -16; }
 	local ntri = { 0, -4; 8, -14; -8, -14; }
 	local vradar = MijHUD.NewComponent(1)
 	MOD.VisRadarDisp = vradar
 	function vradar:OnRender(x,y,w,h)
-		self:DispTargets(self.NpcTargets, self.NpcDisp)
-		self:DispTargets(self.PlyTargets, self.PlyDisp)
+		self:DispTargets(self.NpcTargets, self.NpcDisp, true)
+		self:DispTargets(self.PlyTargets, self.PlyDisp, true)
+		self:DispTargets(self.GateTargets, self.GateDisp)
 	end
-	function vradar:DispTargets(targets, func)
+	function vradar:DispTargets(targets, func, offs)
 		if not targets then return end
 		for ikey = 1, #targets do
 			local vtgt, cpos = targets[ikey], nil
 			if not IsValidTgt(vtgt) then continue end
 			local dist = DistanceToTarg(vtgt)
 			if dist > self.MaxRange then continue end
-			--local head = vtgt:LookupBone("ValveBiped.Bip01_Head1")
-			--if head then
-			if false then
+			--[[---- Too slow --------------------------------
+			local head = vtgt:LookupBone("ValveBiped.Bip01_Head1")
+			if head then
 				local phead = vtgt:GetBonePosition(head)
 				cpos = (phead + vec10z):ToScreen()
 			else
-				local obbz = Vector(0,0,vtgt:OBBMaxs().z)
+				local obbz = Vector(0, 0, vtgt:OBBMaxs().z)
 				cpos = vtgt:LocalToWorld(obbz):ToScreen()
+			end
+			------------------------------------------------]]
+			if offs then
+				local obbz = vtgt:OBBMaxs() * vector_up
+				cpos = vtgt:LocalToWorld(obbz):ToScreen()
+			else
+				cpos = vtgt:GetPos():ToScreen()
 			end
 			func(self, vtgt, cpos.x, cpos.y, dist)
 		end
@@ -138,10 +156,9 @@ function MOD.Initialize()
 		local font = MijHUD.GetFont("HUD_Txt18")
 		local dist = tostring(math.Round(dist))
 		scr.DrawPoly(scr.Poly(offx, offy, ptri), col_a)
-		scr.DrawText(offx, offy-18, dist, 0, 2, col_a, font)
+		scr.DrawText(offx, offy-18, dist, 1, 2, col_a, font)
 	end
 	function vradar:NpcDisp(targ, offx, offy, dist)
-		local x, y, w, h = self.X, self.Y, self.W, self.H
 		local col_a = MijHUD.GetColor("Radar_B")
 		local font = MijHUD.GetFont("HUD_Txt18")
 		local key = self.NpcIdents[targ:GetClass()]
@@ -152,31 +169,62 @@ function MOD.Initialize()
 		scr.DrawPoly(scr.Poly(offx, offy, ntri), col_b)
 		scr.DrawText(offx, offy-18, dist, 1, 2, col_a, font)
 	end
+	function vradar:GateDisp(targ, offx, offy, dist)
+		local col_a = MijHUD.GetColor("Sec_ColA")
+		local col_b = MijHUD.GetColor("Sec_ColB")
+		local font = MijHUD.GetFont("HUD_Txt18")
+		local dist = tostring(math.Round(dist))
+		scr.DrawPoly(scr.Circle(offx, offy, 21, 21, 0, 6), col_a)
+		scr.DrawPoly(scr.Circle(offx, offy, 18, 18, 0, 6), col_b)
+		scr.DrawText(offx, offy-20, dist, 1, 2, col_a, font)
+	end
+	
+	local entcls = MijHUD.NewComponent(2)
+	function entcls:OnRender(x,y,w,h)
+		local col_m = MijHUD.GetColor("Sec_ColA")
+		local font = MijHUD.GetFont("HUD_Txt18")
+		local trace = LocalPlayer():GetEyeTraceNoCursor()
+		if not IsValid(trace.Entity) then return end
+		local ecls = FmtClass(trace.Entity:GetClass())
+		scr.DrawText(x, y, ecls, 1, 0, col_m, font)
+	end
+	function entcls:OnInterval()
+		self.Visible = MijHUD.Options("Show.EntClass")
+	end
+	entcls:SetViewport(ScrW()/2, ScrH()/2 + 10, 0, 0)
 end
 
 local function get_targets(opts)
-	local npcs, plys = false, false
+	local npcs, plys, gates
 	if opts.VisShowNpcs or opts.HudShowNpcs then
 		npcs = ents.FindByClass("npc_*")
 	end
 	if opts.VisShowPlys or opts.HudShowPlys then
 		plys = player.GetAll()
 	end
-	return npcs, plys
+	if opts.VisShowGates or opts.HudShowGates then
+		gates = ents.FindByClass("event_horizon")
+	end
+	return npcs, plys, gates
 end
 
+local ET = {}
 function MOD.UpdateTargets()
 	if not MijHUD.IsShown then return end
 	local hradar = MOD.HudRadarDisp
 	local vradar = MOD.VisRadarDisp
-	local option = MijHUD.Options.Radar
-	local npcs, plys = get_targets(option)
-	hradar.NpcIdents = option.NpcIdents or {}
+	local option = MijHUD.Options.Radar or {}
+	local npcs, plys, gate = get_targets(option)
+	
+	hradar.NpcIdents = option.NpcIdents or ET
 	hradar.MaxRange = option.HudMaxRange or 1000
 	hradar.NpcTargets = option.HudShowNpcs and npcs
 	hradar.PlyTargets = option.HudShowPlys and plys
-	vradar.NpcIdents = option.NpcIdents or {}
+	hradar.GateTargets = option.HudShowGates and gate
+	
+	vradar.NpcIdents = option.NpcIdents or ET
 	vradar.MaxRange = option.VisMaxRange or 1000
 	vradar.NpcTargets = option.VisShowNpcs and npcs
 	vradar.PlyTargets = option.VisShowPlys and plys
+	vradar.GateTargets = option.VisShowGates and gate
 end

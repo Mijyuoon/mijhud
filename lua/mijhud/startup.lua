@@ -7,11 +7,10 @@ local MOD = {
 MijHUD.LoadModule(MOD)
 
 MOD.BootSequence = {
-	Done = 32,
-	Act = {},
+	Done = 30,
 	Snd = {},
 	Lf = {
-		Sub = 1,
+		Ena = 1,
 		Dis = 30,
 		"CPU CHECK",
 		"MEMORY SET",
@@ -21,7 +20,7 @@ MOD.BootSequence = {
 		"OK"
 	};
 	Rt = {
-		Sub = 7,
+		Ena = 7,
 		Dis = 30,
 		"CHECKSUMS",
 		"-ROM F2h-",
@@ -32,7 +31,7 @@ MOD.BootSequence = {
 		"CA8257D2"
 	};
 	Mx = {
-		Sub = 14, Dis = 30,
+		Ena = 14, Dis = 30,
 		{"MijHUD v1.792 initializing", false};
 		{"Primary system startup:", false};
 		{"\t# Verifying hardware integrity", "[OK]"};
@@ -49,16 +48,14 @@ MOD.BootSequence = {
 		{"\t# Loading user configuration", "[OK]"};
 		{"MijHUD initialization completed", false};
 	};
-	An = {
-		Sub = 30, Dis = 99,
-	};
 }
 
-MOD.BootSequence.Act[30] = function()
-	MOD.StartupDispAn.Anim_Mv:StartAnim()
-end
-MOD.BootSequence.Act[31] = function()
-	return true
+local function addsounds(lst)
+	for _, tbl in ipairs(lst) do
+		for i = tbl[1], tbl[2] do
+			MOD.BootSequence.Snd[i] = tbl[3]
+		end
+	end
 end
 
 local snd_boot1a = Sound("mijhud/boot-1a.mp3")
@@ -66,30 +63,23 @@ local snd_boot1b = Sound("mijhud/boot-1b.mp3")
 local snd_boot2a = Sound("mijhud/boot-2a.mp3")
 local snd_boot2b = Sound("mijhud/boot-2b.mp3")
 
-local function setsnd(kf, kt, snd)
-	for i = kf, kt do
-		MOD.BootSequence.Snd[i] = snd
-	end
-end
-
-setsnd(2, 7, snd_boot1a)
-setsnd(8, 14, snd_boot1b)
-setsnd(18, 23, snd_boot2a)
-setsnd(25, 29, snd_boot2a)
-setsnd(30, 30, snd_boot2b)
-
-local An_InitSz = 125
-local An_Scale, An_FinalSz, An_DeltaX, An_DeltaY
+addsounds {
+	{2, 7, snd_boot1a};
+	{8, 14, snd_boot1b};
+	{18, 23, snd_boot2a};
+	{25, 29, snd_boot2a};
+	{30, 30, snd_boot2b};
+}
 
 local floor = math.floor
 local clamp = math.Clamp
-local ins = table.insert
 local cp_list = {}
 
 local function mx_setmaxlen(nx)
 	local maxlen = 0
 	local font = MijHUD.GetFont("HUD_Txt26")
 	for _, vt in ipairs(MOD.BootSequence.Mx) do
+		if not vt[2] then continue end
 		local vtx = scr.TextSize(vt[1], font)
 		if maxlen < vtx then maxlen = vtx end
 	end
@@ -127,7 +117,7 @@ function MOD.Initialize()
 	MOD.StartupDispLf = boot_lf
 	function boot_lf:OnRender(x,y,w,h)
 		local dats = MOD.BootSequence.Lf
-		local mval = MijHUD.IsStarting - dats.Sub
+		local mval = MijHUD.IsStarting - dats.Ena
 		local dval = MijHUD.IsStarting - dats.Dis
 		if mval < 0 or dval > -1 then return end
 		local tex = MijHUD.GetTexture("HUD_BootLf")
@@ -145,7 +135,7 @@ function MOD.Initialize()
 	MOD.StartupDispRt = boot_rt
 	function boot_rt:OnRender(x,y,w,h)
 		local dats = MOD.BootSequence.Rt
-		local mval = MijHUD.IsStarting - dats.Sub
+		local mval = MijHUD.IsStarting - dats.Ena
 		local dval = MijHUD.IsStarting - dats.Dis
 		if mval < 0 or dval > -1 then return end
 		local tex = MijHUD.GetTexture("HUD_BootRt")
@@ -163,7 +153,7 @@ function MOD.Initialize()
 	MOD.StartupDispMx = boot_mx
 	function boot_mx:OnRender(x,y,w,h)
 		local dats = MOD.BootSequence.Mx
-		local mval = MijHUD.IsStarting - dats.Sub
+		local mval = MijHUD.IsStarting - dats.Ena
 		local dval = MijHUD.IsStarting - dats.Dis
 		if mval < 0 or dval > -1 then return end
 		local tex = MijHUD.GetTexture("HUD_BootMx")
@@ -182,42 +172,13 @@ function MOD.Initialize()
 	end
 	boot_mx:SetViewport(30,20,36,416)
 	
-	local boot_an = MijHUD.NewComponent(true)
-	local anim = boot_an:AnimFade("Mv", 0, 1, 0.05, 40.0)
-	MOD.StartupDispAn = boot_an
-	function boot_an:OnRender(x,y,w,h)
-		local dats = MOD.BootSequence.An
-		local mval = MijHUD.IsStarting - dats.Sub
-		local dval = MijHUD.IsStarting - dats.Dis
-		if mval < 0 or dval > -1 then return end
-		local t_tl = MijHUD.GetTexture("HUD_TopLeft")
-		local t_tr = MijHUD.GetTexture("HUD_TopRight")
-		local t_bl = MijHUD.GetTexture("HUD_BotLeft")
-		local t_br = MijHUD.GetTexture("HUD_BotRight")
-		local col_b = MijHUD.GetColor("Pri_Back")
-		
-		local sx = Lerp(self.Anim_Mv.Value, An_InitSz, An_FinalSz)
-		local sy = floor(sx * An_Scale)
-		local mx = self.Anim_Mv.Value * An_DeltaX
-		local my = self.Anim_Mv.Value * An_DeltaY
-		scr.DrawTexRect(x-sx-mx, y-sy-my, sx, sy, t_tl, col_b)
-		scr.DrawTexRect(x+mx, y-sy-my, sx, sy, t_tr, col_b)
-		scr.DrawTexRect(x-sx-mx, y+my, sx, sy, t_bl, col_b)
-		scr.DrawTexRect(x+mx, y+my, sx, sy, t_br, col_b)
-	end
-	function anim:OnFadeEnd()
-		MijHUD.IsStarting = MijHUD.IsStarting + 1
-		MOD.DoStartup(true)
-	end
-	boot_an:SetViewport(ScrW()/2, ScrH()/2, 0, 0)
-	
-	ins(cp_list, boot_lf)
-	ins(cp_list, boot_rt)
-	ins(cp_list, boot_mx)
-	ins(cp_list, boot_an)
+	table.insert(cp_list, boot_lf)
+	table.insert(cp_list, boot_rt)
+	table.insert(cp_list, boot_mx)
 end
 
 function MOD.ToggleHUD()
+	--[[
 	if MijHUD.IsShown or MijHUD.IsStarting then
 		MijHUD.IsStarting = false
 		MijHUD.IsShown = false
@@ -225,10 +186,10 @@ function MOD.ToggleHUD()
 		MOD.BeginStartup()
 	end
 	return true
+	--]]
 end
 
 function MOD.BeginStartup()
-	MOD.StartupDispAn.Anim_Mv:StopAnim(true)
 	MijHUD.IsStarting = 0
 	mx_setmaxlen(30)
 end
@@ -256,13 +217,7 @@ function MOD.DoStartup()
 	if sndpath then
 		LocalPlayer():EmitSound(sndpath)
 	end
-	local noincrement = false
-	if bootseq.Act[startval_n] then
-		noincrement = bootseq.Act[startval_n]()
-	end
-	if not noincrement then
-		MijHUD.IsStarting = startval_n
-	end
+	MijHUD.IsStarting = startval_n
 	if startval_n == bootseq.Done then
 		MijHUD.IsStarting = false
 		MijHUD.IsShown = true

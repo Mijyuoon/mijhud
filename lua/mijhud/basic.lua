@@ -52,6 +52,7 @@ function MOD.Initialize()
 	})
 	
 	local health = MijHUD.NewComponent()
+	health:AnimBlink("Wh", 5.0):StartAnim()
 	MOD.HealthDisp = health
 	function health:SetViewport(x,y,w,h)
 		self.Base.SetViewport(self, x, y, w, h)
@@ -67,6 +68,7 @@ function MOD.Initialize()
 		if not IsValid(ply) then return end
 		self.Health = math.Clamp(ply:Health(), 0, 10000)
 		self.Armor = math.Clamp(ply:Armor(), 0, 10000)
+		self.LowHlth = MijHUD.Options("Basic.LowHealth") or 0
 	end
 	function health:OnRender(x,y,w,h)
 		local tex = MijHUD.GetTexture("HUD_BotLeft")
@@ -74,6 +76,7 @@ function MOD.Initialize()
 		local col_b = MijHUD.GetColor("Pri_Back")
 		local col_m = MijHUD.GetColor("Pri_ColA")
 		local col_s = MijHUD.GetColor("Pri_ColB")
+		local col_w = MijHUD.GetColor("Crit_ColA")
 		scr.DrawTexRect(x, y, w, h, tex, col_b)
 		
 		local hp_txt = "HEALTH ????"
@@ -100,14 +103,20 @@ function MOD.Initialize()
 			scr.DrawRect(x+44, y+126, a2_bar, 12, col_s)
 		end
 		
-		scr.DrawPoly(self.Pg_Alert, col_m)
+		if self.Health > self.LowHlth then
+			scr.DrawPoly(self.Pg_Alert, col_m)
+		elseif self.Anim_Wh.Value then
+			scr.DrawPoly(self.Pg_Alert, col_w)
+		end
 		scr.DrawPoly(self.Pg_Left, col_m)
 	end
 	health:SetViewport(10, -10, 340, 154)
 	health.MaxHealth, health.Health = 150, 0
 	health.MaxArmor, health.Armor = 200, 0
+	health.LowHlth = 0
 	
 	local weapon = MijHUD.NewComponent()
+	weapon:AnimBlink("Wh", 5.0):StartAnim()
 	function weapon:SetViewport(x,y,w,h)
 		self.Base.SetViewport(self, x, y, w, h)
 		self.Pg_Alert = scr.Poly(self.X, self.Y, {
@@ -131,6 +140,7 @@ function MOD.Initialize()
 			self.PriClip, self.AmmoPri, self.AmmoSec = c1, a1, a2
 			self.MaxPriClip = self.ClipSizes[wpn:GetClass()] or 1
 		end
+		self.LowClip = MijHUD.Options("Basic.LowPrClip") or 0
 	end
 	function weapon:OnRender(x,y,w,h)
 		local tex = MijHUD.GetTexture("HUD_BotRight")
@@ -139,15 +149,17 @@ function MOD.Initialize()
 		local col_b = MijHUD.GetColor("Pri_Back")
 		local col_m = MijHUD.GetColor("Pri_ColA")
 		local col_s = MijHUD.GetColor("Pri_ColB")
+		local col_w = MijHUD.GetColor("Crit_ColA")
 		scr.DrawTexRect(x, y, w, h, tex, col_b)
 		
+		local alert_mode = false
 		if self.HasWeapon then
-			local cp_txt = "PR-CLIP ???"
+			local cp_txt = "PR.CLIP OVF"
 			local cp_bar = MijHUD.MapRange(self.PriClip, 0, self.MaxPriClip, 0, 200, true)
 			if self.PriClip < 0 then
-				cp_txt = "PR-CLIP ERR"
+				cp_txt = "PR.CLIP ???"
 			elseif self.PriClip < 1000 then
-				cp_txt = Format("PR-CLIP %03d", self.PriClip)
+				cp_txt = Format("PR.CLIP %03d", self.PriClip)
 			end
 			scr.DrawText(x+w-38, y+40, cp_txt, 2, 0, col_m, font)
 			scr.DrawRect(x+w-40-cp_bar, y+70, cp_bar, 20, col_m)
@@ -156,30 +168,37 @@ function MOD.Initialize()
 				scr.DrawRect(x+w-44-c2_bar, y+74, c2_bar, 12, col_s)
 			end
 			
-			local ap_txt, sp_txt = " ???", " ???"
+			local ap_txt, sp_txt = " OVF", " OVF"
 			if self.AmmoPri < 0 then
-				ap_txt = " ERR"
+				ap_txt = " ???"
 			elseif self.AmmoPri < 1000 then
 				ap_txt = Format(" %03d", self.AmmoPri)
 			end
 			if self.AmmoSec < 0 then
-				sp_txt = " ERR"
+				sp_txt = " ???"
 			elseif self.AmmoSec < 1000 then
 				sp_txt = Format(" %03d", self.AmmoSec)
 			end
 			local at_txt = "P/S"..ap_txt..sp_txt
 			scr.DrawText(x+w-38, y+94, at_txt, 2, 0, col_m, font)
+			
+			local low_clip = self.LowClip * self.MaxPriClip
+			alert_mode = self.PriClip <= low_clip and self.PriClip >= 0
 		else
 			scr.DrawText(x+204, y+94, "ERROR", 1, 1, col_m, fbig)
 		end
 		
-		scr.DrawPoly(self.Pg_Alert, col_m)
+		if not alert_mode then
+			scr.DrawPoly(self.Pg_Alert, col_m)
+		elseif self.Anim_Wh.Value then
+			scr.DrawPoly(self.Pg_Alert, col_w)
+		end
 		scr.DrawPoly(self.Pg_Left, col_m)
 	end
 	weapon:SetViewport(-10, -10, 340, 154)
 	weapon.PriClip, weapon.MaxPriClip = 0, 1
 	weapon.AmmoPri, weapon.AmmoSec = 0, 0
-	weapon.HasWeapon = true
+	weapon.LowClip, weapon.HasWeapon = 0, true
 	
 	local utils_lf = MijHUD.NewComponent()
 	MOD.UtilsDispLf = utils_lf
