@@ -303,10 +303,9 @@ function MOD.BindPress(ply, key, st)
 			weapsel:ScrollNext(false)
 			return true
 		end
-	else
-		if key == "invnext" or key == "invprev" then
-			weapsel:StartSelect()
-			return true
-		end
+	elseif (key == "invnext" or key == "invprev")
+	and not LocalPlayer():KeyDown(IN_ATTACK) then
+		weapsel:StartSelect()
+		return true
 	end
 end

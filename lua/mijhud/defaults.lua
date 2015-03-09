@@ -122,8 +122,8 @@ function MOD.Initialize()
 	MijHUD.Options.Battery = {
 		MaxCharge = 7290,
 		CritLevel = 0.05,
-		ChargeRate = 0.0, --17.6,
-		DrainRate = 0.0, --4.2,
+		ChargeRate = 17.6,
+		DrainRate = 4.2,
 	}
 	
 	MijHUD.Options.Show = {
