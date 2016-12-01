@@ -1,5 +1,5 @@
 -- Core module
-local MOD = { 
+local MOD = {
 	LoadIndex = 0,
 	LoadName = "Core",
 	UseOffline = true,
@@ -17,6 +17,32 @@ function MijHUD.OneTimeHook(name, func)
 		hook.Remove(name, uniqid)
 		return ra,rb,rc
 	end)
+end
+
+local pressed_keys = {}
+MOD.List_PressedKeys = pressed_keys
+
+function MijHUD.IsKeyPressed(key, rep)
+	local down = input.IsButtonDown(key)
+	local pkey = pressed_keys[key]
+	rep = rep and (RealTime() + rep) or -1
+	if down and not pkey then
+		if IsValid(vgui.GetKeyboardFocus()) then
+			return false
+		end
+		pressed_keys[key] = rep
+		return true
+	elseif not down and pkey then
+		pressed_keys[key] = nil
+	elseif down and pkey > 0 and pkey < RealTime() then
+		pressed_keys[key] = rep
+		return not IsValid(vgui.GetKeyboardFocus())
+	end
+	return false
+end
+
+function MijHUD.IsKeyDown(key)
+	return pressed_keys[key] and true or false
 end
 
 local options = {}
@@ -52,7 +78,9 @@ MijHUD.Options = setmetatable({}, {
 		else
 			for key in keyiter do
 				local newtbl = curtbl[key]
-				if not newtbl then return nil end
+				if newtbl == nil then
+					return nil
+				end
 				curtbl = newtbl
 			end
 			return curtbl
@@ -62,7 +90,7 @@ MijHUD.Options = setmetatable({}, {
 
 local hud_hide = {
 	CHudDamageIndicator = 2,
-	CHudAmmo = 1, CHudSecondaryAmmo = 1, 
+	CHudAmmo = 1, CHudSecondaryAmmo = 1,
 	CHudHealth = 1, CHudBattery = 1,
 	CHudCrosshair = 1,
 }
@@ -124,18 +152,13 @@ function cp_meta:IsValid()
 	return true
 end
 
-local __weak = { __mode = "v" }
-local function weaktbl()
-	return setmetatable({}, __weak)
-end
-
 local cp_list = {}
 MOD.Components = cp_list
 
 function MijHUD.NewComponent(idx)
 	local tab = setmetatable({
 		Base = table.Copy(cp_meta),
-		AnimList = weaktbl(),
+		AnimList = adv.TblWeakV(),
 		Visible = true,
 		ClipRect = false,
 	}, cp_meta)
@@ -220,7 +243,7 @@ end
 function af_meta:StartAnim()
 	self.Enable = true
 	if self.IsReset then
-		self.Value = (self.Step < 0) 
+		self.Value = (self.Step < 0)
 			and self.MaxVal or self.MinVal
 		self.NextTick = RealTime() + self.Rate
 		self.IsReset = false
@@ -281,8 +304,8 @@ function MOD.Interval()
 	end
 end
 
-local tx_list = {}
-MOD.UserTextures = tx_list
+local tex_list = {}
+MOD.UserTextures = tex_list
 
 function MijHUD.LoadTextures(pref, tab)
 	if not tab then
@@ -290,35 +313,39 @@ function MijHUD.LoadTextures(pref, tab)
 	end
 	for tex, path in pairs(tab) do
 		if pref then tex = pref.."_"..tex end
-		tx_list[tex] = Material(path, "smooth")
+		tex_list[tex] = Material(path, "smooth")
 	end
 end
 
 local errtex = Material("__error")
 function MijHUD.GetTexture(name)
-	return (tx_list[name] or errtex)
+	return (tex_list[name] or errtex)
 end
 
-local fn_list = {}
-MOD.UserFonts = fn_list
+local fnt_list = {}
+MOD.UserFonts = fnt_list
 
 function MijHUD.CreateFont(pref, tab)
 	local name = tab.Name
-	if name and pref then
+	if not tab then
+		pref, tab = nil, pref
+	end
+	if pref then
 		name = pref.."_"..name
 	end
+	if fnt_list[name] then return end
 	local is_bold = tab.Bold and 700 or 400
-	scr.CreateFont(name, tab.Font, tab.Size, is_bold)
-	fn_list[name] = name
+	scr.CreateFont(name, tab.Font, tab.Size, tab.Weight or is_bold, tab.Params)
+	fnt_list[name] = name
 end
 
 local errfnt = scr.CreateFont("HUD_Error", "Arial", 24)
 function MijHUD.GetFont(name)
-	return (fn_list[name] or errfnt)
+	return (fnt_list[name] or errfnt)
 end
 
-local cr_list = {}
-MOD.UserColors = cr_list
+local col_list = {}
+MOD.UserColors = col_list
 
 function MijHUD.ColorScheme(pref, tab)
 	if not tab then
@@ -328,13 +355,13 @@ function MijHUD.ColorScheme(pref, tab)
 		if key and pref then
 			key = pref.."_"..key
 		end
-		cr_list[key] = val
+		col_list[key] = val
 	end
 end
 
 local errcol = Color(255, 255, 255)
 function MijHUD.GetColor(name)
-	return (cr_list[name] or errcol)
+	return (col_list[name] or errcol)
 end
 
 function MijHUD.MapRange(val, a1, a2, b1, b2, flr)

@@ -126,7 +126,7 @@ function MOD.Initialize()
 		local col_m = MijHUD.GetColor("Pri_ColA")
 		scr.DrawTexRect(x, y, w, h, tex, col_b)
 		for i = 1, clamp(mval, 0, #dats) do
-			scr.DrawText(x+w+4, y+4+26*(i-1), dats[i], 0, 0, col_m, font)
+			scr.DrawText(x+w+4, y+4+26*(i-1), dats[i], -1, -1, col_m, font)
 		end
 	end
 	boot_lf:SetViewport(50,-40,36,180)
@@ -144,7 +144,7 @@ function MOD.Initialize()
 		local col_m = MijHUD.GetColor("Pri_ColA")
 		scr.DrawTexRect(x, y, w, h, tex, col_b)
 		for i = 1, clamp(mval, 0, #dats) do
-			scr.DrawText(x-4, y+4+26*(i-1), dats[i], 2, 0, col_m, font)
+			scr.DrawText(x-4, y+4+26*(i-1), dats[i], 1, -1, col_m, font)
 		end
 	end
 	boot_rt:SetViewport(-50,-160,36,210)
@@ -163,10 +163,10 @@ function MOD.Initialize()
 		scr.DrawTexRect(x, y, w, h, tex, col_b)
 		for i = 1, clamp(mval, 0, #dats) do
 			local txti, stsi = dats[i][1], dats[i][2]
-			scr.DrawText(x+w+4, y+4+26*(i-1), txti, 0, 0, col_m, font)
+			scr.DrawText(x+w+4, y+4+26*(i-1), txti, -1, -1, col_m, font)
 			if stsi and i < mval then
 				local mlen = dats.LenX + 4
-				scr.DrawText(x+w+mlen, y+4+26*(i-1), stsi, 0, 0, col_m, font)
+				scr.DrawText(x+w+mlen, y+4+26*(i-1), stsi, -1, -1, col_m, font)
 			end
 		end
 	end

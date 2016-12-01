@@ -84,7 +84,7 @@ function MOD.Initialize()
 		if self.Health < 10000 then
 			hp_txt = Format("HEALTH %04d", self.Health)
 		end
-		scr.DrawText(x+38, y+40, hp_txt, 0, 0, col_m, font)
+		scr.DrawText(x+38, y+40, hp_txt, -1, -1, col_m, font)
 		scr.DrawRect(x+40, y+70, hp_bar, 20, col_m)
 		if self.Health > self.MaxHealth then
 			local h2_bar = MijHUD.MapRange(self.Health, self.MaxHealth, 9999, 0, 192, true)
@@ -96,11 +96,11 @@ function MOD.Initialize()
 		if self.Armor < 10000 then
 			ap_txt = Format("SHIELD %04d", self.Armor)
 		end
-		scr.DrawText(x+38, y+92, ap_txt, 0, 0, col_m, font)
-		scr.DrawRect(x+40, y+122, ap_bar, 20, col_m)
+		scr.DrawText(x+38, y+90, ap_txt, -1, -1, col_m, font)
+		scr.DrawRect(x+40, y+120, ap_bar, 20, col_m)
 		if self.Armor > self.MaxArmor then
 			local a2_bar = MijHUD.MapRange(self.Armor, self.MaxArmor, 9999, 0, 192, true)
-			scr.DrawRect(x+44, y+126, a2_bar, 12, col_s)
+			scr.DrawRect(x+44, y+124, a2_bar, 12, col_s)
 		end
 		
 		if self.Health > self.LowHlth then
@@ -154,38 +154,38 @@ function MOD.Initialize()
 		
 		local alert_mode = false
 		if self.HasWeapon then
-			local cp_txt = "PR.CLIP OVF"
+			local cp_txt = "PR.CLIP ???"
 			local cp_bar = MijHUD.MapRange(self.PriClip, 0, self.MaxPriClip, 0, 200, true)
 			if self.PriClip < 0 then
-				cp_txt = "PR.CLIP ???"
+				cp_txt = "PR.CLIP ---"
 			elseif self.PriClip < 1000 then
 				cp_txt = Format("PR.CLIP %03d", self.PriClip)
 			end
-			scr.DrawText(x+w-38, y+40, cp_txt, 2, 0, col_m, font)
+			scr.DrawText(x+w-38, y+40, cp_txt, 1, -1, col_m, font)
 			scr.DrawRect(x+w-40-cp_bar, y+70, cp_bar, 20, col_m)
 			if self.PriClip > self.MaxPriClip then
 				local c2_bar = MijHUD.MapRange(self.PriClip, self.MaxPriClip, 999, 0, 192, true)
 				scr.DrawRect(x+w-44-c2_bar, y+74, c2_bar, 12, col_s)
 			end
 			
-			local ap_txt, sp_txt = " OVF", " OVF"
+			local ap_txt, sp_txt = " ???", " ???"
 			if self.AmmoPri < 0 then
-				ap_txt = " ???"
+				ap_txt = " ---"
 			elseif self.AmmoPri < 1000 then
 				ap_txt = Format(" %03d", self.AmmoPri)
 			end
 			if self.AmmoSec < 0 then
-				sp_txt = " ???"
+				sp_txt = " ---"
 			elseif self.AmmoSec < 1000 then
 				sp_txt = Format(" %03d", self.AmmoSec)
 			end
 			local at_txt = "P/S"..ap_txt..sp_txt
-			scr.DrawText(x+w-38, y+94, at_txt, 2, 0, col_m, font)
+			scr.DrawText(x+w-38, y+90, at_txt, 1, -1, col_m, font)
 			
 			local low_clip = self.LowClip * self.MaxPriClip
 			alert_mode = self.PriClip <= low_clip and self.PriClip >= 0
 		else
-			scr.DrawText(x+204, y+94, "ERROR", 1, 1, col_m, fbig)
+			scr.DrawText(x+204, y+94, "ERROR", 0, 0, col_m, fbig)
 		end
 		
 		if not alert_mode then
@@ -224,10 +224,10 @@ function MOD.Initialize()
 			if ret then return end
 		end
 		
-		local date = os.date("%b %d %Y"):upper()
+		local date = os.date("%d %b %Y"):upper()
 		local time = os.date("%I:%M:%S %p"):upper()
-		scr.DrawText(x+38, y+58, time, 0, 0, col_m, font)
-		scr.DrawText(x+38, y+82, date, 0, 0, col_m, font)
+		scr.DrawText(x+38, y+58, time, -1, -1, col_m, font)
+		scr.DrawText(x+38, y+82, date, -1, -1, col_m, font)
 		scr.DrawPoly(self.Pg_Left, col_m)
 	end
 	utils_lf:SetViewport(10, 10, 340, 154)
@@ -278,7 +278,7 @@ function MOD.Initialize()
 		scr.DrawLine(x-line, y-hpos, x+line, y-hpos, col_m, wr)
 		scr.DrawLine(x-line, y+hpos, x+line, y+hpos, col_m, wr)
 		if self.Anim_Ln.Value then
-			scr.DrawText(x, y, "USER DEAD", 1, 1, col_m, font)
+			scr.DrawText(x, y, "USER DEAD", 0, 0, col_m, font)
 		end
 	end
 	deadmsg:SetViewport(ScW, ScH, 326, 178)

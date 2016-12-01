@@ -82,8 +82,8 @@ function MOD.Initialize()
 			local text_a = trimlength(item.Ms1, 20)
 			local text_b = trimlength(item.Ms2, 20)
 			scr.DrawTexRect(x+anm, y+move, w, h, tex, col_b)
-			scr.DrawText(x+56+anm, y+4+move, text_a, 0, 0, col_m, font)
-			scr.DrawText(x+w-56+anm, y+h-6+move, text_b, 2, 2, col_m, font)
+			scr.DrawText(x+56+anm, y+4+move, text_a, -1, -1, col_m, font)
+			scr.DrawText(x+w-56+anm, y+h-6+move, text_b, 1, 1, col_m, font)
 		end
 	end
 	function pickups:AddNotify(kind, data)
@@ -92,7 +92,7 @@ function MOD.Initialize()
 		if func then
 			ms1, ms2 = func(data)
 		else			
-			ms1 = "??UNK?? PICKED UP"
+			ms1 = "??unknown?? PICKED UP"
 			ms2 = "$"..(data.N or "")
 		end
 		local entry = { Ms1 = ms1, Ms2 = ms2 }
@@ -142,17 +142,17 @@ function MOD.Initialize()
 		local fbig = MijHUD.GetFont("HUD_Txt30")
 		local fsml = MijHUD.GetFont("HUD_Txt24")
 		local col_b = MijHUD.GetColor("Pri_Back")
-		local col_m = MijHUD.GetColor("Pri_ColA")
+		local col_m = MijHUD.GetColor(self.CurWeapColor)
 		local col_lf = MijHUD.GetColor(self.WeapLfColor)
 		local col_rt = MijHUD.GetColor(self.WeapRtColor)
 		scr.DrawTexRect(x, y, w, h, tex, col_b)
-		scr.DrawText(x+w/2, y+7, self.CurWeapName, 1, 0, col_m, fbig)
-		scr.DrawText(x+34, y+87, self.WeapLfName, 0, 0, col_lf, fsml)
-		scr.DrawText(x+46, y+67, self.WeapLfAmmo, 0, 0, col_lf, fsml)
-		scr.DrawText(x+58, y+47, self.WeapLfClip, 0, 0, col_lf, fsml)
-		scr.DrawText(x+w-34, y+87, self.WeapRtName, 2, 0, col_rt, fsml)
-		scr.DrawText(x+w-46, y+67, self.WeapRtAmmo, 2, 0, col_rt, fsml)
-		scr.DrawText(x+w-58, y+47, self.WeapRtClip, 2, 0, col_rt, fsml)
+		scr.DrawText(x+w/2, y+7, self.CurWeapName, 0, -1, col_m, fbig)
+		scr.DrawText(x+34, y+87, self.WeapLfName, -1, -1, col_lf, fsml)
+		scr.DrawText(x+46, y+67, self.WeapLfAmmo, -1, -1, col_lf, fsml)
+		scr.DrawText(x+58, y+47, self.WeapLfClip, -1, -1, col_lf, fsml)
+		scr.DrawText(x+w-34, y+87, self.WeapRtName, 1, -1, col_rt, fsml)
+		scr.DrawText(x+w-46, y+67, self.WeapRtAmmo, 1, -1, col_rt, fsml)
+		scr.DrawText(x+w-58, y+47, self.WeapRtClip, 1, -1, col_rt, fsml)
 	end
 	function weapsel:OnInterval()
 		local weapon = LocalPlayer():GetActiveWeapon()
@@ -173,38 +173,44 @@ function MOD.Initialize()
 	function weapsel:GetWeapAmmo(c1, a1, a2)
 		local clip = "???"
 		if c1 < 0 then
-			clip = "ERR"
+			clip = "---"
 		elseif c1 < 1000 then
 			clip = Format("%03d", c1)
 		end
 		local ammo1, ammo2 = "???", " ???"
 		if a1 < 0 then
-			ammo1 = "ERR"
+			ammo1 = "---"
 		elseif a1 < 1000 then
 			ammo1 = Format("%03d", a1)
 		end
 		if a2 < 0 then
-			ammo2 = " ERR"
+			ammo2 = " ---"
 		elseif a2 < 1000 then
 			ammo2 = Format(" %03d", a2)
 		end
-		local ammo = ammo1..ammo2
-		return clip, ammo
+		return clip, ammo1..ammo2
 	end
 	function weapsel:ScrollToIndex(index)
 		local weaplst = self.WeapList
 		self.CurWeapIndex = index
-		self.CurWeapName = trimlength(self:GetWeapName(weaplst[index]), 18)
+		local w_cur = weaplst[index]
+		local c1, _, a1, _ = w_cur:GetProperAmmoData()
+		self.CurWeapName = trimlength(self:GetWeapName(w_cur), 18)
+		if (c1 < 0 and a1 == 0) or c1 == 0 then
+			self.CurWeapColor = "Crit_ColA"
+		elseif a1 == 0 then
+			self.CurWeapColor = "Warn_ColA"
+		else
+			self.CurWeapColor = "Pri_ColA"
+		end
 		local w_prev = weaplst[wrapidx(weaplst, index-1)]
 		self.WeapLfName = trimlength(self:GetWeapName(w_prev), 18)
 		if IsValid(w_prev) then
 			local c1, _, a1, a2 = w_prev:GetProperAmmoData()
 			local clip, ammo = self:GetWeapAmmo(c1, a1, a2)
-			clip, ammo = "CLIP "..clip, "AMMO "..ammo
-			self.WeapLfClip, self.WeapLfAmmo = clip, ammo
-			if c1 < 0 and a1 == 0 then
-				self.WeapLfColor = "Crit_ColA"
-			elseif c1 == 0 then
+			self.WeapLfClip = "CLIP "..clip
+			self.WeapLfAmmo = "AMMO "..ammo
+			if (c1 < 0 and a1 == 0) or c1 == 0 then
 				self.WeapLfColor = "Crit_ColA"
 			elseif a1 == 0 then
 				self.WeapLfColor = "Warn_ColA"
@@ -221,11 +227,9 @@ function MOD.Initialize()
 		if IsValid(w_next) then
 			local c1, _, a1, a2 = w_next:GetProperAmmoData()
 			local clip, ammo = self:GetWeapAmmo(c1, a1, a2)
-			clip, ammo = clip.." CLIP", ammo.." AMMO"
-			self.WeapRtClip, self.WeapRtAmmo = clip, ammo
-			if c1 < 0 and a1 == 0 then
-				self.WeapRtColor = "Crit_ColA"
-			elseif c1 == 0 then
+			self.WeapRtClip = clip.." CLIP"
+			self.WeapRtAmmo = ammo.." AMMO"
+			if (c1 < 0 and a1 == 0) or c1 == 0 then
 				self.WeapRtColor = "Crit_ColA"
 			elseif a1 == 0 then
 				self.WeapRtColor = "Warn_ColA"
@@ -266,11 +270,11 @@ end
 function MOD.PickupWeap(weap)
 	if not MijHUD.IsShown then return end
 	MOD.PickupNotify:WeapNotify(weap)
-	--[[--------
+	--[[
 	if MOD.WeapSelDisp.Visible then
 		MOD.WeapSelDisp:StartSelect()
 	end
-	----------]]
+	--]]
 	return false
 end
 

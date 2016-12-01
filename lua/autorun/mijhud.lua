@@ -1,11 +1,12 @@
 if SERVER then
 	local flist = file.Find("mijhud/*.lua", "LSV")
 	for _, fname in ipairs(flist) do
-		print("[Mij SV] Loaded mijhud/"..fname)
+		if not fname:find("%.lua$") then continue end
+		print("[Mij SV] Transmit mijhud/"..fname)
 		AddCSLuaFile("mijhud/"..fname)
 	end
 end
-
+	
 if CLIENT then
 	MijHUD = {
 		Version = "v1.792",
@@ -60,6 +61,9 @@ if CLIENT then
 	hook.Add("HUDPaint", "MijHUD", function()
 		MijHUD.CallHookEx("RenderHUD")
 	end)
+	hook.Add("PostDrawTranslucentRenderables", "MijHUD", function(_, sky)
+		if not sky then MijHUD.CallHookEx("Render3D") end
+	end)
 	hook.Add("HUDShouldDraw", "MijHUD", function(val)
 		return MijHUD.CallHook("DrawBaseHUD", val)
 	end)
@@ -69,9 +73,11 @@ if CLIENT then
 		end
 	end)
 	
+	include("autorun/advlib.lua")
 	include("autorun/client/scrlib.lua")
 	local flist = file.Find("mijhud/*.lua", "LCL")
 	for _, fname in ipairs(flist) do
+		if not fname:find("%.lua$") then continue end
 		print("[Mij CL] Loaded mijhud/"..fname)
 		include("mijhud/"..fname)
 	end
