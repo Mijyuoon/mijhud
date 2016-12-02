@@ -1,0 +1,6 @@
+"UnlitGeneric" {
+	"$basetexture" "mijhud/beam"
+	"$vertexcolor" 1
+	"$vertexalpha" 1
+	"$ignorez" 1
+}
