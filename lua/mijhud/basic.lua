@@ -5,12 +5,10 @@ local MOD = {
 }
 MijHUD.LoadModule(MOD)
 
-local weap = FindMetaTable("Weapon")
-function weap:GetProperAmmoData()
+function MOD.GetProperAmmoData(wep)
 	local add = false
-	local ply = LocalPlayer()
-	if self.CustomAmmoDisplay then
-		add = self:CustomAmmoDisplay()
+	if wep.CustomAmmoDisplay then
+		add = wep:CustomAmmoDisplay()
 	end
 	if add and add.Draw then
 		local c1 = add.PrimaryClip
@@ -21,9 +19,10 @@ function weap:GetProperAmmoData()
 	elseif add and not add.Draw then
 		return -1, -1, -1, -1
 	elseif not add then
-		local c1, c2 = self:Clip1(), self:Clip2()
-		local ammo1 = self:GetPrimaryAmmoType()
-		local ammo2 = self:GetSecondaryAmmoType()
+		local ply = LocalPlayer()
+		local c1, c2 = wep:Clip1(), wep:Clip2()
+		local ammo1 = wep:GetPrimaryAmmoType()
+		local ammo2 = wep:GetSecondaryAmmoType()
 		local a1 = (ammo1 > -1) and ply:GetAmmoCount(ammo1)
 		local a2 = (ammo2 > -1) and ply:GetAmmoCount(ammo2)
 		return c1, c2, (a1 or -1), (a2 or -1)
@@ -136,7 +135,7 @@ function MOD.Initialize()
 		local wpn = ply:GetActiveWeapon()
 		self.HasWeapon = ply:Alive() and IsValid(wpn)
 		if self.HasWeapon then
-			local c1, _, a1, a2 = wpn:GetProperAmmoData()
+			local c1, _, a1, a2 = MOD.GetProperAmmoData(wpn)
 			self.PriClip, self.AmmoPri, self.AmmoSec = c1, a1, a2
 			self.MaxPriClip = self.ClipSizes[wpn:GetClass()] or 1
 		end

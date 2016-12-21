@@ -1,6 +1,12 @@
 -- Quick options menu
 local MOD = {
 	LoadName = "OptionMenu",
+	
+	ToggleKey = KEY_O,
+	NavUpKey  = KEY_UP,
+	NavDnKey  = KEY_DOWN,
+	SetLtKey  = KEY_LEFT,
+	SetRtKey  = KEY_RIGHT,
 }
 MijHUD.LoadModule(MOD)
 
@@ -140,14 +146,14 @@ function MOD.Initialize()
 		end
 	end
 	function optwnd:OnInterval()
-		if MijHUD.IsKeyPressed(KEY_O) then
+		if MijHUD.IsKeyPressed(MOD.ToggleKey) then
 			self.Visible = not self.Visible
 		end
 		if not self.Visible then return end
 
 		local opts = self.MenuStack[#self.MenuStack]
 		opts = opts and opts[3] or MijHUD.Options.OptionMenu
-		if MijHUD.IsKeyPressed(KEY_DOWN, 0.2) then
+		if MijHUD.IsKeyPressed(MOD.NavDnKey, 0.2) then
 			local msel = math.min(#opts, 10)
 			if self.Selected < msel then
 				self.Selected = self.Selected + 1
@@ -155,17 +161,17 @@ function MOD.Initialize()
 				self.Offset = self.Offset + 1
 			end
 		end
-		if MijHUD.IsKeyPressed(KEY_UP, 0.2) then
+		if MijHUD.IsKeyPressed(MOD.NavUpKey, 0.2) then
 			if self.Selected > 1 then
 				self.Selected = self.Selected - 1
 			elseif self.Offset > 0 then
 				self.Offset = self.Offset - 1
 			end
 		end
-		if MijHUD.IsKeyPressed(KEY_LEFT)
-		or MijHUD.IsKeyPressed(KEY_RIGHT) then
+		if MijHUD.IsKeyPressed(MOD.SetLtKey)
+		or MijHUD.IsKeyPressed(MOD.SetRtKey) then
 			local ob = opts[self.Selected + self.Offset]
-			itypes[ob.Type].Set(ob, MijHUD.IsKeyDown(KEY_RIGHT))
+			itypes[ob.Type].Set(ob, MijHUD.IsKeyDown(MOD.SetRtKey))
 		end
 	end
 	local utl = MijHUD.Basic.UtilsDispRt

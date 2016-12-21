@@ -59,14 +59,18 @@ if CLIENT then
 		MijHUD.CallHookEx("Interval")
 	end)
 	hook.Add("HUDPaint", "MijHUD", function()
-		MijHUD.CallHookEx("RenderHUD")
+		local draw = hook.Run("HUDShouldDraw", "MijHUD.HUD")
+		if draw ~= false then MijHUD.CallHookEx("RenderHUD") end
 	end)
 	hook.Add("PostDrawTranslucentRenderables", "MijHUD", function(_, sky)
-		if not sky then MijHUD.CallHookEx("Render3D") end
+		if sky then return end
+		local draw = hook.Run("HUDShouldDraw", "MijHUD.3D")
+		if draw ~= false then MijHUD.CallHookEx("Render3D") end
 	end)
 	hook.Add("HUDShouldDraw", "MijHUD", function(val)
 		return MijHUD.CallHook("DrawBaseHUD", val)
 	end)
+
 	concommand.Add("mijhud_toggle", function()
 		if not MijHUD.CallHook("ToggleHUD") then
 			MijHUD.IsShown = not MijHUD.IsShown

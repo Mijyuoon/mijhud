@@ -32,6 +32,15 @@ local function genBeams(mins, maxs)
 end
 
 function MOD.Initialize()
+	if not MijHUD.Options.Trigger then
+		MijHUD.Options.Trigger = {
+			AutoQuery  = true,
+			QueryTimer = 30,
+			MaxRange   = 5000,
+
+		}
+	end
+
 	MijHUD.LoadTextures("Utl", {
 		Beam3D = "mijhud/beam",
 	})

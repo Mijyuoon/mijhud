@@ -7,10 +7,10 @@ MijHUD.LoadModule(MOD)
 function MOD.Initialize()
 	if not MijHUD.Options.Battery then
 		MijHUD.Options.Battery = {
-			CritLevel = 0.05,
-			MaxCharge = 1000,
+			CritLevel  = 0.05,
+			MaxCharge  = 1000,
 			ChargeRate = 2.4,
-			DrainRate = 1.7,
+			DrainRate  = 1.7,
 		}
 	end
 

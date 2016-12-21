@@ -6,6 +6,9 @@ local MOD = {
 }
 MijHUD.LoadModule(MOD)
 
+local BootInterval  = 0.125 -- 0.22
+local MxColumnWidth = 30
+
 MOD.BootSequence = {
 	Done = 30,
 	Snd = {},
@@ -50,30 +53,19 @@ MOD.BootSequence = {
 	};
 }
 
-local function addsounds(lst)
-	for _, tbl in ipairs(lst) do
-		for i = tbl[1], tbl[2] do
-			MOD.BootSequence.Snd[i] = tbl[3]
-		end
+local function set_sounds(from, to, path)
+	for i = from, to do
+		MOD.BootSequence.Snd[i] = path
 	end
 end
 
-local snd_boot1a = Sound("mijhud/boot-1a.mp3")
-local snd_boot1b = Sound("mijhud/boot-1b.mp3")
-local snd_boot2a = Sound("mijhud/boot-2a.mp3")
-local snd_boot2b = Sound("mijhud/boot-2b.mp3")
+set_sounds( 2,  7, Sound("mijhud/boot-1a.mp3"))
+set_sounds( 8, 14, Sound("mijhud/boot-1b.mp3"))
+set_sounds(18, 23, Sound("mijhud/boot-2a.mp3"))
+set_sounds(25, 29, Sound("mijhud/boot-2a.mp3"))
+set_sounds(30, 30, Sound("mijhud/boot-2b.mp3"))
 
-addsounds {
-	{2, 7, snd_boot1a};
-	{8, 14, snd_boot1b};
-	{18, 23, snd_boot2a};
-	{25, 29, snd_boot2a};
-	{30, 30, snd_boot2b};
-}
-
-local floor = math.floor
-local clamp = math.Clamp
-local cp_list = {}
+local components = {}
 
 local function mx_setmaxlen(nx)
 	local maxlen = 0
@@ -89,7 +81,7 @@ end
 local hud_hide = MijHUD.Core.List_HideHUD
 function MOD.DrawBaseHUD(item)
 	if not MijHUD.IsStarting then return end
-	if hud_hide[item] == 1 then return false end
+	if hud_hide[item] then return false end
 end
 
 function MOD.Initialize()
@@ -105,7 +97,7 @@ function MOD.Initialize()
 		Size = 26,
 	})
 	
-	timer.Create("MijHUD.Startup", 0.22, 0, MOD.DoStartup)
+	timer.Create("MijHUD.Startup", BootInterval, 0, MOD.DoStartup)
 	
 	local mhud = MijHUD.Basic.UtilsDispLf
 	An_DeltaX = ScrW()/2 - (mhud.W + 10)
@@ -125,7 +117,7 @@ function MOD.Initialize()
 		local col_b = MijHUD.GetColor("Pri_Back")
 		local col_m = MijHUD.GetColor("Pri_ColA")
 		scr.DrawTexRect(x, y, w, h, tex, col_b)
-		for i = 1, clamp(mval, 0, #dats) do
+		for i = 1, math.Clamp(mval, 0, #dats) do
 			scr.DrawText(x+w+4, y+4+26*(i-1), dats[i], -1, -1, col_m, font)
 		end
 	end
@@ -143,7 +135,7 @@ function MOD.Initialize()
 		local col_b = MijHUD.GetColor("Pri_Back")
 		local col_m = MijHUD.GetColor("Pri_ColA")
 		scr.DrawTexRect(x, y, w, h, tex, col_b)
-		for i = 1, clamp(mval, 0, #dats) do
+		for i = 1, math.Clamp(mval, 0, #dats) do
 			scr.DrawText(x-4, y+4+26*(i-1), dats[i], 1, -1, col_m, font)
 		end
 	end
@@ -161,7 +153,7 @@ function MOD.Initialize()
 		local col_b = MijHUD.GetColor("Pri_Back")
 		local col_m = MijHUD.GetColor("Pri_ColA")
 		scr.DrawTexRect(x, y, w, h, tex, col_b)
-		for i = 1, clamp(mval, 0, #dats) do
+		for i = 1, math.Clamp(mval, 0, #dats) do
 			local txti, stsi = dats[i][1], dats[i][2]
 			scr.DrawText(x+w+4, y+4+26*(i-1), txti, -1, -1, col_m, font)
 			if stsi and i < mval then
@@ -172,13 +164,13 @@ function MOD.Initialize()
 	end
 	boot_mx:SetViewport(30,20,36,416)
 	
-	table.insert(cp_list, boot_lf)
-	table.insert(cp_list, boot_rt)
-	table.insert(cp_list, boot_mx)
+	table.insert(components, boot_lf)
+	table.insert(components, boot_rt)
+	table.insert(components, boot_mx)
 end
 
 function MOD.ToggleHUD()
-	---[[
+	--[[
 	if MijHUD.IsShown or MijHUD.IsStarting then
 		MijHUD.IsStarting = false
 		MijHUD.IsShown = false
@@ -191,20 +183,20 @@ end
 
 function MOD.BeginStartup()
 	MijHUD.IsStarting = 0
-	mx_setmaxlen(30)
+	mx_setmaxlen(MxColumnWidth)
 end
 
 function MOD.RenderHUD(ofln)
 	if not (ofln and MijHUD.IsStarting) then return end
-	for i = 1, #cp_list do
-		cp_list[i]:CallRender()
+	for i = 1, #components do
+		components[i]:CallRender()
 	end
 end
 
 function MOD.Interval(ofln)
 	if not (ofln and MijHUD.IsStarting) then return end
-	for i = 1, #cp_list do
-		cp_list[i]:CallInterval()
+	for i = 1, #components do
+		components[i]:CallInterval()
 	end
 end
 

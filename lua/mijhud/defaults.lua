@@ -148,6 +148,11 @@ function MOD.Initialize()
 		--DrainRate = 0.01,
 	}
 
+	MijHUD.Options.Aimbot = {
+		InterpRate = 20,
+		AutoRelock = false,
+	}
+
 	MijHUD.Options.Show = {
 		EntClass = true,
 		HudRadar = false,
@@ -178,6 +183,12 @@ function MOD.Initialize()
 			{Name = "Periodic Querying", Type = "Chk", Var = "Trigger.AutoQuery"};
 			{Name = "Query Interval", Type = "Num", Var = "Trigger.QueryTimer",
 				Min = 10, Max = 180, Step = 10};
+		}};
+		{Name = "Aim Assist", Type = "Goto", Data = {
+			{Type = "Back"};
+			{Name = "Interp. Rate", Type = "Num", Var = "Aimbot.InterpRate",
+				Min = 5, Max = 100, Step = 5};
+			{Name = "Auto Retarget", Type = "Chk", Var = "Aimbot.AutoRelock"};
 		}};
 		{Name = "Save Settings", Type = "Btn", Fn = "OptionMenu:SaveSettings"};
 	}

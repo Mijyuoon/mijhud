@@ -88,18 +88,24 @@ MijHUD.Options = setmetatable({}, {
 	end;
 })
 
+local hud_disable = {
+	CHudDamageIndicator = true,
+}
+MOD.List_DisableHUD = hud_disable
+
 local hud_hide = {
-	CHudDamageIndicator = 2,
-	CHudAmmo = 1, CHudSecondaryAmmo = 1,
-	CHudHealth = 1, CHudBattery = 1,
-	CHudCrosshair = 1,
+	CHudAmmo		  = true,
+	CHudSecondaryAmmo = true,
+	CHudHealth		  = true,
+	CHudBattery		  = true,
+	CHudCrosshair	  = true,
 }
 MOD.List_HideHUD = hud_hide
 
 function MOD.DrawBaseHUD(val)
-	if hud_hide[val] == 2 then return false end
+	if hud_disable[val] then return false end
 	if not MijHUD.IsShown then return nil end
-	if hud_hide[val] == 1 then return false end
+	if hud_hide[val] then return false end
 end
 
 local cp_meta = {}
@@ -391,11 +397,19 @@ end
 local function patch_camera()
 	local gmod_camera = weapons.GetStored("gmod_camera")
 	if gmod_camera.MijHUD_Patch then return end
+
+	local allow_hud = {
+		["CHudGMod"]   = true,
+		["MijHUD.HUD"] = true,
+		["MijHUD.3D"]  = true,
+	}
+
 	local old_hud_should_draw = gmod_camera.HUDShouldDraw
 	function gmod_camera:HUDShouldDraw(item)
-		if item == "CHudGMod" then return true end
+		if allow_hud[item] then return nil end
 		return old_hud_should_draw(self, item)
 	end
+
 	gmod_camera.MijHUD_Patch = true
 	print("[!] Patching gmod_camera...")
 end
