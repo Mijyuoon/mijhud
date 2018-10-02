@@ -44,7 +44,7 @@ function MOD.Initialize()
 
 			local tChr = tCi
 			local tStr = kLen*tCi
-			if msg.IsScanOut then
+			if msg.Effect == TFX_SCANOUT then
 				tStr = msg.FxTime
 				tChr = tStr/kLen
 			end

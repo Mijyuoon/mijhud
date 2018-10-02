@@ -406,7 +406,7 @@ local function patch_camera()
 
 	local old_hud_should_draw = gmod_camera.HUDShouldDraw
 	function gmod_camera:HUDShouldDraw(item)
-		if allow_hud[item] then return nil end
+		if allow_hud[item] then return true end
 		return old_hud_should_draw(self, item)
 	end
 

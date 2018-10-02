@@ -107,20 +107,16 @@ function scr.DrawLine(x1,y1,x2,y2,col,sz)
 end
 
 function scr.DrawRectOL(x,y,w,h,col,sz)
-    sz = sz or 1
-    local asz = math.abs(sz)
-    local opu = math.ceil(asz/2)-0.0
-    local opd = math.floor(asz/2)+0.0
+    sz = math.floor(sz) or 1
+    surface.SetDrawColor(col)
     if sz < 0 then
-        scr.DrawLine(x-opd,y-asz,x-opd,y+h+asz,col,asz)
-        scr.DrawLine(x-asz,y-opd,x+w+asz,y-opd,col,asz)
-        scr.DrawLine(x+w+opu,y-asz,x+w+opu,y+h+asz,col,asz)
-        scr.DrawLine(x-asz,y+h+opu,x+w+asz,y+h+opu,col,asz)
+    	for i = 0, -sz-1 do
+    		surface.DrawOutlinedRect(x-i, y-i, w+2*i, h+2*i)
+		end
     elseif sz > 0 then
-        scr.DrawLine(x+opu,y,x+opu,y+h,col,asz)
-        scr.DrawLine(x,y+opu,x+w,y+opu,col,asz)
-        scr.DrawLine(x+w-opd,y,x+w-opd,y+h,col,asz)
-        scr.DrawLine(x,y+h-opd,x+w,y+h-opd,col,asz)
+    	for i = 0, sz-1 do
+    		surface.DrawOutlinedRect(x+i, y+i, w-2*i, h-2*i)
+		end
     end
 end
 

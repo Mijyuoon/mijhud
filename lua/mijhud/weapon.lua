@@ -194,7 +194,7 @@ function MOD.Initialize()
 		local weaplst = self.WeapList
 		self.CurWeapIndex = index
 		local w_cur = weaplst[index]
-		local c1, _, a1, _ = w_cur:GetProperAmmoData()
+		local c1, _, a1, _ = MijHUD.GetProperAmmoData(w_cur)
 		self.CurWeapName = trimlength(self:GetWeapName(w_cur), 18)
 		if (c1 < 0 and a1 == 0) or c1 == 0 then
 			self.CurWeapColor = "Crit_ColA"
@@ -206,7 +206,7 @@ function MOD.Initialize()
 		local w_prev = weaplst[wrapidx(weaplst, index-1)]
 		self.WeapLfName = trimlength(self:GetWeapName(w_prev), 18)
 		if IsValid(w_prev) then
-			local c1, _, a1, a2 = w_prev:GetProperAmmoData()
+			local c1, _, a1, a2 = MijHUD.GetProperAmmoData(w_prev)
 			local clip, ammo = self:GetWeapAmmo(c1, a1, a2)
 			self.WeapLfClip = "CLIP "..clip
 			self.WeapLfAmmo = "AMMO "..ammo
@@ -225,7 +225,7 @@ function MOD.Initialize()
 		local w_next = weaplst[wrapidx(weaplst, index+1)]
 		self.WeapRtName = trimlength(self:GetWeapName(w_next), 18)
 		if IsValid(w_next) then
-			local c1, _, a1, a2 = w_next:GetProperAmmoData()
+			local c1, _, a1, a2 = MijHUD.GetProperAmmoData(w_next)
 			local clip, ammo = self:GetWeapAmmo(c1, a1, a2)
 			self.WeapRtClip = clip.." CLIP"
 			self.WeapRtAmmo = ammo.." AMMO"

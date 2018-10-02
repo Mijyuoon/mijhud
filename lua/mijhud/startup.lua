@@ -170,7 +170,7 @@ function MOD.Initialize()
 end
 
 function MOD.ToggleHUD()
-	--[[
+	---[[
 	if MijHUD.IsShown or MijHUD.IsStarting then
 		MijHUD.IsStarting = false
 		MijHUD.IsShown = false

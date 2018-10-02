@@ -5,7 +5,7 @@ local MOD = {
 }
 MijHUD.LoadModule(MOD)
 
-function MOD.GetProperAmmoData(wep)
+function MijHUD.GetProperAmmoData(wep)
 	local add = false
 	if wep.CustomAmmoDisplay then
 		add = wep:CustomAmmoDisplay()
@@ -135,7 +135,7 @@ function MOD.Initialize()
 		local wpn = ply:GetActiveWeapon()
 		self.HasWeapon = ply:Alive() and IsValid(wpn)
 		if self.HasWeapon then
-			local c1, _, a1, a2 = MOD.GetProperAmmoData(wpn)
+			local c1, _, a1, a2 = MijHUD.GetProperAmmoData(wpn)
 			self.PriClip, self.AmmoPri, self.AmmoSec = c1, a1, a2
 			self.MaxPriClip = self.ClipSizes[wpn:GetClass()] or 1
 		end
